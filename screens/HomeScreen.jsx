@@ -1,27 +1,53 @@
 import { Pressable, ScrollView, StyleSheet, Text, View, Image } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { getAllMemories } from '../services/BucketService';
 
-const HomeScreen = ({navigation}) => {
-  return (
-    <ScrollView style={styles.container}>
-        <Pressable onPress={() => navigation.navigate("Add")}>
-            <Text>Add</Text>
-        </Pressable>
-        
-        {/* Card of your images that you need to loop through */}
-        <View style={styles.card}>
-            <Image
-                style={styles.img}
-                source={{
-                    uri: 'https://reactnative.dev/img/tiny_logo.png',
-                }} />
+const HomeScreen = ({ navigation }) => {
 
-            <Text>Image Title</Text>
-        </View>
+    const [memories, setMemories] = useState(null);
 
-    </ScrollView>
+    useEffect(() => {
+        const getMemories = async () => {
+            setMemories(await getAllMemories());
+        };
 
-  )
+        const unsubscribe = navigation.addListener('focus', () => {
+            getMemories();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
+
+    const renderData = () => {
+        if (!memories) {
+            return <Text>Loading...</Text>; // Add a loading indicator or message
+        }
+
+        return memories.map((data, index) => (
+            <View style={styles.card} key={index}>
+                <Image
+                    style={styles.img}
+                    source={{ uri: data.image }} />
+
+                <Text>{data.title}</Text>
+            </View>
+        ));
+    };
+
+    return (
+
+        <ScrollView style={styles.container}>
+
+            <Pressable style={{ backgroundColor: 'lightgreen', padding: 10, alignItems: 'center' }} onPress={() => navigation.navigate("Add")}>
+                <Text>Add</Text>
+            </Pressable>
+
+            {/* Card of your images that you need to loop through */}
+            {renderData()}
+
+        </ScrollView>
+
+    )
 }
 
 export default HomeScreen
